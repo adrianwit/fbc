@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-//AsCriteriaMap returns criteria  map
-func AsCriteriaMap(sqlCriteria *dsc.SQLCriteria, paramIterator toolbox.Iterator) (map[string]interface{}, error) {
+//asCriteriaMap returns criteria  map
+func asCriteriaMap(sqlCriteria *dsc.SQLCriteria, paramIterator toolbox.Iterator) (map[string]interface{}, error) {
 	var result = make(map[string]interface{})
 	if len(sqlCriteria.Criteria) == 0 {
 		return result, nil

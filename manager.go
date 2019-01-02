@@ -60,13 +60,13 @@ func (m *manager) update(client *db.Client, ctx context.Context, statement *dsc.
 }
 
 func (m *manager) criteria(statement *dsc.BaseStatement, parameters toolbox.Iterator) (map[string]interface{}, error) {
-	return AsCriteriaMap(statement.SQLCriteria, parameters)
+	return asCriteriaMap(statement.SQLCriteria, parameters)
 
 }
 
 func (m *manager) runDelete(client *db.Client, ctx context.Context, statement *dsc.DmlStatement, sqlParameters []interface{}) (affected int, err error) {
 	parameters := toolbox.NewSliceIterator(sqlParameters)
-	criteriaMap, err := AsCriteriaMap(statement.SQLCriteria, parameters)
+	criteriaMap, err := asCriteriaMap(statement.SQLCriteria, parameters)
 	if err != nil {
 		return 0, err
 	}
