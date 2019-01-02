@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	pkColumnNameKey = "keyColumnName"
+	pkColumnKey = "keyColumn"
 )
 
 type config struct {
@@ -24,6 +24,13 @@ type manager struct {
 	config *config
 }
 
+func (m *manager) getKeyColumn(table string) string {
+	if keyColumn := m.config.GetString(table+"."+pkColumnKey, ""); keyColumn != "" {
+		return keyColumn
+	}
+	return m.config.keyColumnName
+}
+
 func (m *manager) insert(client *db.Client, ctx context.Context, statement *dsc.DmlStatement, sqlParameters []interface{}) (err error) {
 	parameters := toolbox.NewSliceIterator(sqlParameters)
 	var record map[string]interface{}
@@ -31,9 +38,10 @@ func (m *manager) insert(client *db.Client, ctx context.Context, statement *dsc.
 	if record, err = statement.ColumnValueMap(parameters); err != nil {
 		return err
 	}
-	id, ok := record[m.config.keyColumnName]
+	keyColumn := m.getKeyColumn(statement.Table)
+	id, ok := record[keyColumn]
 	if !ok {
-		return fmt.Errorf("missing value for %v", m.config.keyColumnName)
+		return fmt.Errorf("missing value for %v", keyColumn)
 	}
 	pathRef := statement.Table + "/" + toolbox.AsString(id)
 	ref := client.NewRef(pathRef)
@@ -47,9 +55,11 @@ func (m *manager) update(client *db.Client, ctx context.Context, statement *dsc.
 		return err
 	}
 	criteriaMap, err := m.criteria(statement.BaseStatement, parameters)
-	id, ok := criteriaMap[m.config.keyColumnName]
+
+	keyColumn := m.getKeyColumn(statement.Table)
+	id, ok := criteriaMap[keyColumn]
 	if !ok {
-		return fmt.Errorf("missing value for %v", m.config.keyColumnName)
+		return fmt.Errorf("missing value for %v", keyColumn)
 	}
 	for k, v := range criteriaMap {
 		record[k] = v
@@ -75,9 +85,11 @@ func (m *manager) runDelete(client *db.Client, ctx context.Context, statement *d
 		ref := client.NewRef(pathRef)
 		return 0, ref.Delete(ctx)
 	}
-	value, ok := criteriaMap[m.config.keyColumnName]
+
+	keyColumn := m.getKeyColumn(statement.Table)
+	value, ok := criteriaMap[keyColumn]
 	if !ok {
-		return 0, fmt.Errorf("missing value for %v", m.config.keyColumnName)
+		return 0, fmt.Errorf("missing value for %v", keyColumn)
 	}
 	var ids = []interface{}{
 		value,
@@ -158,9 +170,11 @@ func (m *manager) ReadAllOnWithHandlerOnConnection(connection dsc.Connection, SQ
 		if err != nil {
 			return err
 		}
-		value, ok := criteriaMap[m.config.keyColumnName]
+
+		keyColumn := m.getKeyColumn(statement.Table)
+		value, ok := criteriaMap[keyColumn]
 		if !ok {
-			return fmt.Errorf("missing value for %v", m.config.keyColumnName)
+			return fmt.Errorf("missing value for %v", keyColumn)
 		}
 		var ids = []interface{}{
 			value,
@@ -207,7 +221,7 @@ func (m *manager) ReadAllOnWithHandlerOnConnection(connection dsc.Connection, SQ
 }
 
 func newConfig(conf *dsc.Config) (*config, error) {
-	var keyColumnName = conf.GetString(pkColumnNameKey, "id")
+	var keyColumnName = conf.GetString(pkColumnKey, "id")
 	return &config{
 		Config:        conf,
 		keyColumnName: keyColumnName,

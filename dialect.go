@@ -12,7 +12,7 @@ type dialect struct{ dsc.DatastoreDialect }
 
 //GetKeyName returns a name of column name that is a key, or coma separated list if complex key
 func (d *dialect) GetKeyName(manager dsc.Manager, datastore, table string) string {
-	var key = manager.Config().GetString(pkColumnNameKey, "id")
+	var key = manager.Config().GetString(pkColumnKey, "id")
 	return key
 }
 

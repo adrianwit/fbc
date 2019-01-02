@@ -81,9 +81,9 @@ func (p *connectionProvider) NewConnection() (dsc.Connection, error) {
 	if firebaseConfig.ProjectID == "" {
 		return nil, errors.New("projectID was empty")
 	}
-	if firebaseConfig.StorageBucket == "" {
-		return nil, errors.New("storageBucket was empty")
-	}
+	//if firebaseConfig.StorageBucket == "" {
+	//	return nil, errors.New("storageBucket was empty")
+	//}
 
 	var credentials option.ClientOption
 	if config.Credentials != "" {
