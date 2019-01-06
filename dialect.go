@@ -10,10 +10,12 @@ var maxRecordColumnScan = 20
 
 type dialect struct{ dsc.DatastoreDialect }
 
-//GetKeyName returns a name of column name that is a key, or coma separated list if complex key
 func (d *dialect) GetKeyName(manager dsc.Manager, datastore, table string) string {
-	var key = manager.Config().GetString(pkColumnKey, "id")
-	return key
+	config := manager.Config()
+	if keyColumn := manager.Config().GetString(table+"."+pkColumnKey, ""); keyColumn != "" {
+		return keyColumn
+	}
+	return config.GetString(pkColumnKey, "id")
 }
 
 //GetColumns returns estimated column for supplied table
@@ -100,17 +102,15 @@ func (d *dialect) GetTables(manager dsc.Manager, datastore string) ([]string, er
 	if err != nil {
 		return result, err
 	}
-	store, err := app.Firestore(ctx)
-	iter := store.Collections(ctx)
+	store, err := app.Database(ctx)
+	iter := store.NewRef("")
 	if err != nil {
 		return result, err
 	}
-	references, err := iter.GetAll()
-	if err != nil {
-		return result, err
-	}
-	for _, item := range references {
-		result = append(result, item.Path)
+	items, err := iter.OrderByKey().GetOrdered(ctx)
+	for i := 0; i < len(items); i++ {
+		items[i].Key()
+		result = append(result, items[i].Key())
 	}
 	return result, nil
 }
