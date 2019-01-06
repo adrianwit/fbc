@@ -7,6 +7,7 @@ import (
 	"github.com/viant/dsc"
 	"github.com/viant/toolbox"
 	"golang.org/x/net/context"
+	"strings"
 )
 
 const (
@@ -66,7 +67,26 @@ func (m *manager) update(client *db.Client, ctx context.Context, statement *dsc.
 	}
 	pathRef := statement.Table + "/" + toolbox.AsString(id)
 	ref := client.NewRef(pathRef)
-	return ref.Update(ctx, record)
+	var subNodes = make(map[string]interface{})
+	for k, v := range record {
+		if strings.Contains(k, ".") {
+			subNodes[k] = v
+			delete(record, k)
+		}
+	}
+	if len(record) > 0 {
+		err = ref.Update(ctx, record)
+	}
+	if err == nil && len(subNodes) > 0 {
+		for k, v := range subNodes {
+			subNodePathRef := statement.Table + "/" + toolbox.AsString(id) + "/" + strings.Replace(k, ".", "/", len(k))
+			subNodeRef := client.NewRef(subNodePathRef)
+			if err = subNodeRef.Set(ctx, v); err != nil {
+				return err
+			}
+		}
+	}
+	return err
 }
 
 func (m *manager) criteria(statement *dsc.BaseStatement, parameters toolbox.Iterator) (map[string]interface{}, error) {

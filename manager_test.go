@@ -25,7 +25,6 @@ func TestManager(t *testing.T) {
 	factory := dsc.NewManagerFactory()
 	manager, err := factory.Create(config)
 	if err != nil {
-		fmt.Printf("make sure mongodb is runnig on localhost")
 		return
 	}
 
@@ -170,7 +169,7 @@ func TestManager(t *testing.T) {
 		var result = make([]map[string]interface{}, 0)
 		err = manager.ReadAll(&result, "SELECT id, name FROM users", nil, nil)
 		assert.Nil(t, err)
-		assert.Equal(t, 3, len(result))
+		assert.Equal(t, 3, len(result)) //including nil
 	}
 
 }
