@@ -42,8 +42,7 @@ func main() {
 	config, err := dsc.NewConfigWithParameters("fbc", "", credentials, map[string]interface{}{
 		"databaseURL":   databaseURL,
  		"projectID":     projectID,
- 		"storageBucket": storageBucket,    
-	})
+ 	})
 	if err != nil {
 		log.Fatal(err)
     }
